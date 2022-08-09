@@ -1,3 +1,73 @@
 from django.db import models
 
-# Create your models here.
+from django.contrib.auth.models import User
+
+
+class Task(models.Model):
+    user = models.ForeignKey(
+        User,
+        verbose_name='User',
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(
+        verbose_name='Name',
+        max_length=128,
+        unique=True,
+        null=False,
+    )
+    created_at = models.DateTimeField(
+        verbose_name='Created at',
+        auto_now_add=True,
+    )
+    updated_at = models.DateTimeField(
+        verbose_name='Updated at',
+        auto_now=True,
+    )
+
+    class Meta:
+        db_table = 'tasks'
+        ordering = ('-created_at',)
+        verbose_name = 'task'
+        verbose_name_plural = 'tasks'
+
+    def __str__(self):
+        return self.name
+
+
+class Status(models.Model):
+    CREATE = 'create'
+    RENDERING = 'rendering'
+    COMPLETE = 'complete'
+
+    STATUS_CHOICES = (
+        (CREATE, 'CREATE'),
+        (RENDERING, 'RENDERING'),
+        (COMPLETE, 'COMPLETE'),
+    )
+
+    task = models.ForeignKey(
+        Task,
+        related_name='statuses',
+        verbose_name='Task',
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(
+        verbose_name='Status',
+        max_length=9,
+        choices=STATUS_CHOICES,
+        default=CREATE,
+    )
+    created_at = models.DateTimeField(
+        verbose_name='Created at',
+        auto_now_add=True,
+    )
+
+    class Meta:
+        db_table = 'statuses'
+        ordering = ('-created_at',)
+        get_latest_by = ('created_at',)
+        verbose_name = 'status'
+        verbose_name_plural = 'statuses'
+
+    def __str__(self):
+        return self.name
