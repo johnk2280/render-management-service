@@ -1,3 +1,17 @@
-from django.shortcuts import render
+from rest_framework.viewsets import ModelViewSet
 
-# Create your views here.
+from .models import Task
+from .models import Status
+
+from .serializers import TaskSerializer
+from .serializers import StatusSerializer
+
+
+class TaskModelViewSet(ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+
+class StatusModelViewSet(ModelViewSet):
+    queryset = Status.objects.all()
+    serializer_class = StatusSerializer

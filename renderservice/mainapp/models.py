@@ -1,11 +1,13 @@
-from django.db import models
+import datetime
 
+from django.db import models
 from django.contrib.auth.models import User
 
 
 class Task(models.Model):
     user = models.ForeignKey(
         User,
+        related_name='tasks',
         verbose_name='User',
         on_delete=models.CASCADE,
     )
@@ -14,6 +16,7 @@ class Task(models.Model):
         max_length=128,
         unique=True,
         null=False,
+        blank=True,
     )
     created_at = models.DateTimeField(
         verbose_name='Created at',
@@ -32,6 +35,17 @@ class Task(models.Model):
 
     def __str__(self):
         return self.name
+
+    def _set_default_task_name(self):
+        self.name = f'task_{self.user.username}_{datetime.datetime.now()}'
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self._set_default_task_name()
+
+        super(Task, self).save(*args, **kwargs)
+        status = Status(task=self)
+        status.save()
 
 
 class Status(models.Model):
