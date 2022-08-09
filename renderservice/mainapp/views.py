@@ -1,10 +1,12 @@
 import random
 import time
 
-from rest_framework import viewsets, status
+from django.db import models
+from rest_framework import status
+from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.generics import RetrieveAPIView
 
 from .models import Task
 from .models import Status
@@ -14,9 +16,10 @@ from .serializers import StatusSerializer
 
 
 class TaskModelViewSet(
+    mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
-    viewsets.GenericViewSet
+    viewsets.GenericViewSet,
 ):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
@@ -37,11 +40,34 @@ class TaskModelViewSet(
         return True
 
 
-class StatusModelViewSet(ModelViewSet):
+class StatusModelViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     queryset = Status.objects.all()
     serializer_class = StatusSerializer
 
-#
-# class TaskStatusHistoryViewSet(ViewSet):
-#     def retrieve(self, request, pk=None):
-#         pass
+
+class TaskHistoryRetrieveAPIView(RetrieveAPIView):
+
+    def get(self, request, *args, **kwargs):
+        data = {
+            'error': 'ERROR'
+        }
+        try:
+            task = Task.objects.get(id=kwargs['pk'])
+            task_statuses = Status.objects.filter(task_id=task.id)
+            data = {
+                'task': TaskSerializer(task).data,
+                'status_history': StatusSerializer(
+                    task_statuses,
+                    many=True,
+                ).data,
+            }
+            response_status = status.HTTP_200_OK
+        except Exception:
+            response_status = status.HTTP_400_BAD_REQUEST
+        # TODO: переписать try-except
+        return Response(data, status=response_status)
