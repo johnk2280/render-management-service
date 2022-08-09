@@ -1,7 +1,7 @@
 import random
 import time
 
-from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework import mixins
@@ -31,12 +31,32 @@ class TaskModelViewSet(
         self._render(serializer.instance)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def list(self, request, *args, **kwargs):
+        tasks = Task.objects.filter(user_id=request.user.id)
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            task = Task.objects.filter(user_id=request.user.id).get(
+                id=kwargs['pk'],
+            )
+            serializer = TaskSerializer(task)
+            data = serializer.data
+            status_code = status.HTTP_200_OK
+        except ObjectDoesNotExist:
+            data = {
+                'message': f'ERROR: Object with id = {kwargs["pk"]} '
+                           f'for user: {request.user.username} does not exist',
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(data=data, status=status_code)
+
     def _render(self, new_task: Task) -> bool:
         Status(task=new_task, name='rendering').save()
-        print('start')
         time.sleep(random.randint(60, 300))
         Status(task=new_task, name='complete').save()
-        print('stop')
         return True
 
 
@@ -53,11 +73,11 @@ class StatusModelViewSet(
 class TaskHistoryRetrieveAPIView(RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
-        data = {
-            'error': 'ERROR'
-        }
         try:
-            task = Task.objects.get(id=kwargs['pk'])
+            # TODO: переделать запросы - реализовать одним запросом
+            task = Task.objects.filter(user_id=request.user.id).get(
+                id=kwargs['pk'],
+            )
             task_statuses = Status.objects.filter(task_id=task.id)
             data = {
                 'task': TaskSerializer(task).data,
@@ -66,8 +86,12 @@ class TaskHistoryRetrieveAPIView(RetrieveAPIView):
                     many=True,
                 ).data,
             }
-            response_status = status.HTTP_200_OK
-        except Exception:
-            response_status = status.HTTP_400_BAD_REQUEST
-        # TODO: переписать try-except
-        return Response(data, status=response_status)
+            status_code = status.HTTP_200_OK
+        except ObjectDoesNotExist:
+            # TODO: описать ошибку
+            data = {
+                'message': 'ERROR'
+            }
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(data, status=status_code)
