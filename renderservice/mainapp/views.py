@@ -11,7 +11,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 from .models import Task
 from .models import Status
@@ -28,10 +28,12 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         # TODO: исправить возможность создание задачи под другим именем
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        self._render(serializer.instance)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            self._render(serializer.instance)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
         queryset = self.queryset
