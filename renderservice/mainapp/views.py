@@ -9,6 +9,7 @@ from rest_framework import mixins
 
 from rest_framework.generics import CreateAPIView
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -66,16 +67,9 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
     def _render(self, new_task: Task) -> bool:
         # TODO: переместить в отдельное приложение
         Status(task=new_task, name='rendering').save()
-        time.sleep(random.randint(60, 300))
+        time.sleep(random.randint(10, 60))
         Status(task=new_task, name='complete').save()
         return True
-
-
-class StatusModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
-                         mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = Status.objects.all()
-    serializer_class = StatusSerializer
-    permission_classes = (IsAdminUser,)
 
 
 class TaskHistoryRetrieveAPIView(RetrieveAPIView):
@@ -96,10 +90,16 @@ class TaskHistoryRetrieveAPIView(RetrieveAPIView):
             }
             status_code = status.HTTP_200_OK
         except ObjectDoesNotExist:
-            # TODO: описать ошибку
             data = {
-                'message': 'ERROR'
+                'error_message': 'The object with the requested ID is missing.'
             }
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(data, status=status_code)
+
+
+class StatusModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                         mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Status.objects.all()
+    serializer_class = StatusSerializer
+    permission_classes = (IsAdminUser,)

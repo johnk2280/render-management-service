@@ -8,5 +8,5 @@ from .views import UserCreateAPIView
 app_name = 'authapp'
 
 urlpatterns = [
-    path('', UserCreateAPIView.as_view()),
+    path('', UserCreateAPIView.as_view(), name='registration'),
 ]
