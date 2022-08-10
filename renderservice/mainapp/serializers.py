@@ -5,6 +5,8 @@ from .models import Status
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Task."""
+
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
@@ -13,6 +15,8 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class StatusSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Status."""
+
     class Meta:
         model = Status
         fields = '__all__'

@@ -5,6 +5,8 @@ from django.db import models
 
 
 class Task(models.Model):
+    """Класс модели задач."""
+
     user = models.ForeignKey(
         User,
         related_name='tasks',
@@ -45,6 +47,8 @@ class Task(models.Model):
 
 
 class Status(models.Model):
+    """Класс модели статусов."""
+
     CREATE = 'create'
     RENDERING = 'rendering'
     COMPLETE = 'complete'

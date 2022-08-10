@@ -1,6 +1,3 @@
-import random
-import time
-
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
@@ -23,12 +20,29 @@ from .tasks import render
 
 class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
                        mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Представление реализующее отображение списка задач, создание новой
+    задачи и получение детальной информации о задаче по ее `id`.
+
+    """
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
     def create(self, request, *args, **kwargs):
+        """Переопределенный метод класса CreateModelMixin для
+        десериализации объекта класса Task и записи его в БД.
+
+        :param request: (Request): объект класса rest_framework.request.Request.
+        :param args: дополнительные параметры объекта класса Request.
+        :param kwargs: дополнительные параметры объекта класса Request.
+        :return: (Response): В случае успешного выполнения возвращает
+                объект класса Response с указанием параметров вновь созданного
+                объекта класса Task и статус-кода 201.
+                В противном случае возвращает в объекте Response
+                сообщение c описанием ошибки и статус-код 400.
+
+        """
         serializer = self.serializer_class(data=request.data)
-        # TODO: исправить возможность создание задачи под другим именем
+        # TODO: исправить возможность создание задачи под другим именем пользователя
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             render.delay(serializer.data['id'])
@@ -37,6 +51,17 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
+        """Переопределенный метод класса ListModelMixin для
+        получения списка объектов класса Task по `id` пользователя.
+
+        :param request: (Request): объект класса rest_framework.request.Request.
+        :param args: дополнительные параметры объекта класса Request.
+        :param kwargs: дополнительные параметры объекта класса Request.
+        :return: (Response): В случае успешного выполнения возвращает
+                объект класса Response с указанием списка объектов класса Task
+                и статус-кода 200.
+
+        """
         queryset = self.queryset
         if not request.user.is_staff:
             queryset = queryset.filter(user_id=request.user.id)
@@ -45,6 +70,20 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
+        """Переопределенный метод класса RetrieveModelMixin для
+        получения детальной информации объекта класса Task по
+        `id` пользователя и`id` задачи.
+
+        :param request: (Request): объект класса rest_framework.request.Request.
+        :param args: дополнительные параметры объекта класса Request.
+        :param kwargs: дополнительные параметры объекта класса Request.
+        :return: (Response): В случае успешного выполнения возвращает
+                объект класса Response с указанием списка объектов класса Task
+                и статус-кода 200.
+                В противном случае возвращает в объекте Response
+                сообщение c описанием ошибки и статус-код 400.
+
+        """
         try:
             if request.user.is_staff:
                 task = self.queryset.get(id=kwargs['pk'])
@@ -66,8 +105,24 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
 
 
 class TaskHistoryRetrieveAPIView(RetrieveAPIView):
+    """Представление реализующее получение истории смены статусов по `id` задачи.
+
+    """
 
     def get(self, request, *args, **kwargs):
+        """Метод обработки GET запроса дял получения истории смены статусов
+        задачи по `id` пользователя и `id` задачи.
+
+        :param request: (Request): объект класса rest_framework.request.Request.
+        :param args: дополнительные параметры объекта класса Request.
+        :param kwargs: дополнительные параметры объекта класса Request.
+        :return: (Response): В случае успешного выполнения возвращает
+                объект класса Response с указанием детальной информации о
+                задаче и списка статусов с указанием деталей и статус-кода 200.
+                В противном случае возвращает в объекте Response
+                сообщение c описанием ошибки и статус-код 400.
+
+        """
         try:
             if request.user.is_staff:
                 task = Task.objects.all().get(id=kwargs['pk'])
@@ -93,6 +148,8 @@ class TaskHistoryRetrieveAPIView(RetrieveAPIView):
 
 class StatusModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
                          mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Представление реализующее получение списка статусов по всем задачам."""
+
     queryset = Status.objects.all()
     serializer_class = StatusSerializer
     permission_classes = (IsAdminUser,)
