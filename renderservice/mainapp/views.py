@@ -7,18 +7,18 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework import mixins
 
-from rest_framework.generics import CreateAPIView
 from rest_framework.generics import RetrieveAPIView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 
 from .models import Task
 from .models import Status
 
 from .serializers import TaskSerializer
 from .serializers import StatusSerializer
+
+from .tasks import render
 
 
 class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
@@ -31,7 +31,7 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
         # TODO: исправить возможность создание задачи под другим именем
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            self._render(serializer.instance)
+            render.delay(serializer.data['id'])
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -63,13 +63,6 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(data=data, status=status_code)
-
-    def _render(self, new_task: Task) -> bool:
-        # TODO: переместить в отдельное приложение
-        Status(task=new_task, name='rendering').save()
-        time.sleep(random.randint(10, 60))
-        Status(task=new_task, name='complete').save()
-        return True
 
 
 class TaskHistoryRetrieveAPIView(RetrieveAPIView):
