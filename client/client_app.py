@@ -1,22 +1,26 @@
 import json
-from pprint import pprint
 
 import click
 import requests
 
+METHOD_MAPPER = {
+    'get': requests.get,
+    'post': requests.post,
+}
 
-def get_response(method: str, url: str, data: dict, token: str) -> requests.Response:
-    method_mapper = {
-        'get': requests.get,
-        'post': requests.post,
-    }
 
+def get_response(
+        method: str,
+        url: str,
+        data: dict = None,
+        token: str = None,
+) -> requests.Response:
     headers = {
         'Authorization': f'Token {token}'
     }
-    response = method_mapper[method.lower()](
+    response = METHOD_MAPPER[method.lower()](
         url=url,
-        data=data if token is None else None,
+        data=data,
         headers=headers if token else None,
     )
     return response.json()
@@ -67,7 +71,7 @@ def main(
         адрес  http://hostname/api-token-auth/ с обязательным указанием
         имени пользователя и пароля. Пример запроса:
 
-        $ post http://hostname/api-token-auth/ --u=gomerSimpson --p=8kwSN38#
+        $ post http://hostname/api-token-auth/ --u=gomerSimpson --p=password
 
         В случае успешного выполнения запроса придет ответ с указанием токена:
 
@@ -86,10 +90,10 @@ def main(
         get http://hostname/api/v1/tasks/ --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
 
         4. Для создания новой задачи, необходимо отправить POST запрос
-        на адрес http://hostname/api/v1/tasks/ с обязательным
+        на адрес http://hostname/api/v1/task_create/ с обязательным
         указанием токена. Пример запроса:
 
-        post http://hostname/api/v1/tasks/ --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
+        post http://hostname/api/v1/task_create/ --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
 
         5. Для получения истории смены статусов задачи, необходимо отправить
         GET запрос на адрес http://hostname/api/v1/task_history/<task_id:int>
@@ -100,7 +104,12 @@ def main(
 
     """
     payload = {'username': u, 'password': p}
-    response = get_response(method, url, payload, t)
+    response = get_response(
+        method=method,
+        url=url,
+        data=payload,
+        token=t,
+    )
     click.echo(json.dumps(response, indent=4))
 
 

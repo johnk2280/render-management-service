@@ -14,7 +14,7 @@ class Task(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField(
-        verbose_name='Name',
+        verbose_name='Task name',
         max_length=128,
         unique=True,
         null=False,
@@ -66,7 +66,7 @@ class Status(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField(
-        verbose_name='Status',
+        verbose_name='Status name',
         max_length=9,
         choices=STATUS_CHOICES,
         default=CREATE,
