@@ -82,16 +82,16 @@
         на адрес http://hostname/api/v1/registration с указанием имени
         пользователя и пароля. Примеры запроса:
 
-                    $ python client_app.py post http://localhost/api-token-auth/ --u=username --p=password
+            $ python client_app.py post http://localhost/api-token-auth/ --u=username --p=password
 
         Если регистрация прошла успешно, то в ответ получите json-объект
         с указанием имени пользователя:
 
-                    {
+            {
 
-                        "username": "gomerSimpson"
+                "username": "gomerSimpson"
 
-                    }
+            }
 
         В противном случае сообщение с указанием ошибки.
 
@@ -99,15 +99,15 @@
         адрес  http://hostname/api-token-auth/ с обязательным указанием
         имени пользователя и пароля. Пример запроса:
 
-                    $ python client_app.py post http://localhost/api-token-auth/ --u=gomerSimpson --p=password
+            $ python client_app.py post http://localhost/api-token-auth/ --u=gomerSimpson --p=password
 
         В случае успешного выполнения запроса придет ответ с указанием токена:
 
-                    {
+            {
 
-                        "token": "bb79f1772ac1b86d57812d904ed89bc16cdc2991"
+                "token": "bb79f1772ac1b86d57812d904ed89bc16cdc2991"
 
-                    }
+            }
 
         В противном случае сообщение с указанием ошибки.
 
@@ -115,17 +115,17 @@
         GET запрос на адрес http://hostname/api/v1/tasks/ с обязательным
         указанием токена. Пример запроса:
 
-                    $ python client_app.py get http://localhost/api/v1/tasks/ --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
+            $ python client_app.py get http://localhost/api/v1/tasks/ --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
 
         4. Для создания новой задачи, необходимо отправить POST запрос
         на адрес http://hostname/api/v1/task_create/ с обязательным
         указанием токена. Пример запроса:
 
-                    $ python client_app.py post http://localhost/api/v1/task_create/ --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
+            $ python client_app.py post http://localhost/api/v1/task_create/ --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
 
         5. Для получения истории смены статусов задачи, необходимо отправить
         GET запрос на адрес http://hostname/api/v1/task_history/<task_id:int>
         с обязательным указанием токена. Пример запроса:
 
-                    $ python client_app.py get http://localhost/api/v1/task_history/29 --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
+            $ python client_app.py get http://localhost/api/v1/task_history/29 --t=e500ac59777571c051d405dbee9a31e7a07d2c2c
 
