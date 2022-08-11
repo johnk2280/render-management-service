@@ -7,8 +7,6 @@ from rest_framework import mixins
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
-from rest_framework.pagination import PageNumberPagination
-
 from rest_framework.permissions import IsAdminUser
 
 from .models import Task
@@ -23,8 +21,8 @@ from .tasks import render
 
 class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin,
                        viewsets.GenericViewSet):
-    """Представление реализующее отображение списка задач, создание новой
-    задачи и получение детальной информации о задаче по ее `id`.
+    """Представление реализующее отображение списка задач и получение
+    детальной информации о задаче по ее `id`.
 
     """
     queryset = Task.objects.all()
@@ -85,7 +83,7 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin,
 
 
 class TaskCreateModelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    """Представление реализующее создание новой задачи
+    """Представление реализующее создание новой задачи.
 
     """
     queryset = Task.objects.all()
