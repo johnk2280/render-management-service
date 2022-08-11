@@ -41,8 +41,10 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
                 сообщение c описанием ошибки и статус-код 400.
 
         """
-        serializer = self.serializer_class(data=request.data)
-        # TODO: исправить возможность создание задачи под другим именем пользователя
+        serializer = self.serializer_class(
+            data=request.data,
+            context={'request': request},
+        )
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             render.delay(serializer.data['id'])

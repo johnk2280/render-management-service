@@ -22,7 +22,7 @@ class TaskAdmin(admin.ModelAdmin):
         """Метод для реализации отображения статуса.
 
         :param obj: (Task): объект класса Task.
-        :return: (str): статус.
+        :return: (str): наименование статуса.
         """
         return Status.objects.filter(task_id=obj.pk).latest()
 
