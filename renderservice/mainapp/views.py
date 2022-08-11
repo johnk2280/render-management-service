@@ -7,50 +7,28 @@ from rest_framework import mixins
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
+from rest_framework.pagination import PageNumberPagination
+
 from rest_framework.permissions import IsAdminUser
 
 from .models import Task
 from .models import Status
 
+from .serializers import TaskCreateSerializer
 from .serializers import TaskSerializer
 from .serializers import StatusSerializer
 
 from .tasks import render
 
 
-class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
-                       mixins.ListModelMixin, viewsets.GenericViewSet):
+class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin,
+                       viewsets.GenericViewSet):
     """Представление реализующее отображение списка задач, создание новой
     задачи и получение детальной информации о задаче по ее `id`.
 
     """
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-
-    def create(self, request, *args, **kwargs):
-        """Переопределенный метод класса CreateModelMixin для
-        десериализации объекта класса Task и записи его в БД.
-
-        :param request: (Request): объект класса rest_framework.request.Request.
-        :param args: дополнительные параметры объекта класса Request.
-        :param kwargs: дополнительные параметры объекта класса Request.
-        :return: (Response): В случае успешного выполнения возвращает
-                объект класса Response с указанием параметров вновь созданного
-                объекта класса Task и статус-кода 201.
-                В противном случае возвращает в объекте Response
-                сообщение c описанием ошибки и статус-код 400.
-
-        """
-        serializer = self.serializer_class(
-            data=request.data,
-            context={'request': request},
-        )
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            render.delay(serializer.data['id'])
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
         """Переопределенный метод класса ListModelMixin для
@@ -106,6 +84,39 @@ class TaskModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
         return Response(data=data, status=status_code)
 
 
+class TaskCreateModelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """Представление реализующее создание новой задачи
+
+    """
+    queryset = Task.objects.all()
+    serializer_class = TaskCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        """Переопределенный метод класса CreateModelMixin для
+        десериализации объекта класса Task и записи его в БД.
+
+        :param request: (Request): объект класса rest_framework.request.Request.
+        :param args: дополнительные параметры объекта класса Request.
+        :param kwargs: дополнительные параметры объекта класса Request.
+        :return: (Response): В случае успешного выполнения возвращает
+                объект класса Response с указанием параметров вновь созданного
+                объекта класса Task и статус-кода 201.
+                В противном случае возвращает в объекте Response
+                сообщение c описанием ошибки и статус-код 400.
+
+        """
+        serializer = self.serializer_class(
+            data=request.data,
+            context={'request': request},
+        )
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            render.delay(serializer.data['id'])
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class TaskHistoryRetrieveAPIView(RetrieveAPIView):
     """Представление реализующее получение истории смены статусов по `id` задачи.
 
@@ -148,10 +159,10 @@ class TaskHistoryRetrieveAPIView(RetrieveAPIView):
         return Response(data, status=status_code)
 
 
-class StatusModelViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
-                         mixins.ListModelMixin, viewsets.GenericViewSet):
-    """Представление реализующее получение списка статусов по всем задачам."""
+class StatusModelViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Представление реализующее получение списка статусов по всем задачам.
 
+    """
     queryset = Status.objects.all()
     serializer_class = StatusSerializer
     permission_classes = (IsAdminUser,)

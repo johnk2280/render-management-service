@@ -1,6 +1,8 @@
 import time
 import random
 
+from django.conf import settings
+
 from renderservice.celery import app
 
 from .models import Status
@@ -17,6 +19,8 @@ def render(task_id: int) -> bool:
     """
     new_task = Task.objects.get(id=task_id)
     Status(task=new_task, name='rendering').save()
-    time.sleep(random.randint(60, 300))
+    time.sleep(
+        random.randint(settings.RENDER_MIN_TIME, settings.RENDER_MAX_TIME),
+    )
     Status(task=new_task, name='complete').save()
     return True

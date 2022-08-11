@@ -16,7 +16,7 @@ def get_response(method: str, url: str, data: dict, token: str) -> requests.Resp
     }
     response = method_mapper[method.lower()](
         url=url,
-        data=data,
+        data=data if token is None else None,
         headers=headers if token else None,
     )
     return response.json()
