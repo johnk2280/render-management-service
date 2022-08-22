@@ -1,16 +1,23 @@
-version: '3.1'
+version: '3.9'
 
 services:
-
   db:
     image: postgres
+    privileged: true
     restart: always
-    env_file:
-      - ./renderservice/renderservice/.env
+    ports:
+      - "9501:5432"
+#    env_file:
+#      - ./renderservice/renderservice/.env
+    environment:
+      POSTGRES_USER: johnk
+      POSTGRES_PASSWORD: johnk123
+      POSTGRES_DB: render_test
   backend:
     build:
       context: .
     ports:
-      - 8000:8080
+      - "8080:8080"
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8080"
     depends_on:
       - db
