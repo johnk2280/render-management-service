@@ -1,0 +1,25 @@
+version: '3.6'
+
+services:
+  db:
+    image: postgres
+    container_name: render_db
+    privileged: true
+    restart: always
+    ports:
+      - "9501:5432"
+    env_file:
+      - backend/renderservice/renderservice/.env
+  backend:
+    build:
+      context: .
+    container_name: render_service
+    ports:
+      - "8080:8080"
+    command: bash -c "
+      ./wait-for-psql.sh db 
+      && python manage.py migrate 
+      && python manage.py runserver 0.0.0.0:8080
+      "
+    depends_on:
+      - db
