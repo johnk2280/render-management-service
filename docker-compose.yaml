@@ -1,37 +1,40 @@
 version: '3.9'
 
 services:
+
   db:
     image: postgres
-    container_name: render_db
-    privileged: true
+    container_name: db_rs
     restart: always
     ports:
       - "9501:5432"
     env_file:
       - backend/renderservice/renderservice/.env
+
   backend:
     build:
       context: .
-    container_name: render_service
-    ports:
-      - "8080:8080"
+    container_name: backend_rs
     command: bash -c "
-      ./wait-for-psql.sh db 
-      && python manage.py migrate 
+      ./wait-for-psql.sh db
+      && python manage.py migrate
       && python manage.py runserver 0.0.0.0:8080
       "
+    ports:
+      - "8080:8080"
     depends_on:
       - db
+      - redis
+
   redis:
-    image: redis:latest
-    container_name: redis_for_rs
-    ports:
-      - "6379:6379"
-    command:  bash -c "
-      redis-server /etc/redis/redis.conf
-      && celery -A renderservice worker --loglevel=ERROR
-      "
-    volumes:
-      - ./data:/data
-      - ./redis.conf:/etc/redis/redis.conf
+    image: redis:alpine
+    container_name: redis_rs
+
+  celery:
+    build:
+      context: .
+    container_name: celery_rs
+    command: celery -A renderservice worker --loglevel=INFO
+    depends_on:
+      - backend
+      - redis
